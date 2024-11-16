@@ -19,8 +19,8 @@ export class Modal extends Component<IModalData> {
 		);
 		this._content = ensureElement<HTMLElement>('.modal__content', container);
 
-		this._closeButton.addEventListener('click', this.close.bind(this));
-		this.container.addEventListener('click', this.close.bind(this));
+		this._closeButton.addEventListener('click', this.closeModal.bind(this));
+		this.container.addEventListener('click', this.closeModal.bind(this));
 		this._content.addEventListener('click', (event) => event.stopPropagation());
 	}
 
@@ -28,21 +28,21 @@ export class Modal extends Component<IModalData> {
 		this._content.replaceChildren(value);
 	}
 
-	open() {
+	openModal() {
 		this.container.classList.add('modal_active');
 		this.events.emit('modal:open');
 	}
 
-	close() {
+	closeModal() {
 		this.container.classList.remove('modal_active');
-		this.content = document.createElement('div');
+		this.content = null;
 		this.events.emit('modal:close');
 	}
 
 	render(data: IModalData): HTMLElement {
 		super.render(data);
-		this.content = data.content;
-		this.open();
+		this.openModal();
+
 		return this.container;
 	}
 }
