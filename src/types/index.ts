@@ -48,7 +48,7 @@ export interface IModal {
 
  export type ContactDetailsForm = Pick<IOrderInfo, 'email' | 'phone'>;
 
-export type TOrderField = ContactDetailsForm & PaymentDetailsForm;
+export type AllOrderField = ContactDetailsForm & PaymentDetailsForm;
 
  export type FormErrors = Partial<Record<keyof IOrderInfo, string>>;
 

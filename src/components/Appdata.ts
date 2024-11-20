@@ -1,156 +1,147 @@
 import {
-	IProductItem,
-	IAppStore,
-	IOrderInfo,
-	TOrderField,
-	FormErrors,
+  IProductItem,
+  IAppStore,
+	AllOrderField,
+  IOrderInfo,
+  FormErrors,
 } from '../types';
 import { Model } from './base/Model';
 
 export class AppState extends Model<IAppStore> {
-	catalog: IProductItem[] = [];
-	basket: IProductItem[] = [];
-	preview: string | null;
-	order: IOrderInfo = {
-		total: 0,
-		items: [],
-		email: '',
+  catalog: IProductItem[] = [];
+  basket: IProductItem[] = [];
+  preview: string | null = null;
+  order: IOrderInfo = {
+    total: 0,
+    items: [],
 		phone: '',
-		address: '',
+    email: '',
+    address: '',
 		payment: '',
-	};
+  };
+  formErrors: FormErrors = {};
 
-	formErrors: FormErrors = {};
+  updateCatalog(items: IProductItem[]) {
+    this.catalog.push(...items);
+    this.emitChanges('catalog:updated', { catalog: this.catalog });
+  }
 
-	setCatalogItem(items: IProductItem[]) {
-		items.forEach((item) => this.catalog.push(item));
-		this.emitChanges('catalog:updated', { catalog: this.catalog });
-	}
+  showPreview(item: IProductItem) {
+    this.preview = item.id;
+    this.emitChanges('preview:changed', item);
+  }
 
-	setPreview(item: IProductItem) {
-		this.preview = item.id;
-		this.emitChanges('preview:changed', item);
-	}
+  getProductButton(item: IProductItem): string {
+    if (item.price === null || !this.isProductInCart(item)) {
+      return 'addToBasket';
+    }
+    return 'removeFromBasket';
+  }
 
-	getCardButton(item: IProductItem) {
-		if (item.price === null) {
-			return 'addToBasket';
-		}
-		if (!this.basket.some((card) => card.id === item.id)) {
-			return 'addToBasket';
-		} else {
-			return 'removeFromBasket';
-		}
-	}
+  isProductInCart(item: IProductItem): boolean {
+    return this.basket.some((card) => card.id === item.id);
+  }
 
-	checkInBasket(item: IProductItem): boolean {
-		return this.basket.some((card) => card.id === item.id);
-	}
+  toggleBasketProduct(item: IProductItem) {
+    if (this.isProductInCart(item)) {
+      return this.deleteCard(item);
+    }
+    return this.addProductToCart(item);
+  }
 
-	toggleBasketProduct(item: IProductItem) {
-		return !this.basket.some((card) => card.id === item.id)
-			? this.addItemToBasket(item)
-			: this.removeCard(item);
-	}
+  addProductToCart(item: IProductItem) {
+    this.basket.push(item);
+    this.emitChanges('basket:changed');
+  }
 
-	addItemToBasket(item: IProductItem) {
-		this.basket = [...this.basket, item];
-		this.emitChanges('basket:changed');
-	}
+  deleteCard(item: IProductItem) {
+    this.basket = this.basket.filter((card) => card.id !== item.id);
+    this.emitChanges('basket:changed');
+  }
 
-	removeCard(item: IProductItem) {
-		this.basket = this.basket.filter((card) => card.id !== item.id);
-		this.emitChanges('basket:changed');
-	}
+  getCardIndex(item: IProductItem): number {
+    return this.basket.indexOf(item) + 1;
+  }
 
-	getCardIndex(item: IProductItem) {
-		return Number(this.basket.indexOf(item)) + 1;
-	}
-
-	clearOrder() {
-		this.order = {
-			total: 0,
-			items: [],
-			email: '',
+  clearOrder() {
+    this.order = {
+      total: 0,
+      items: [],
 			phone: '',
-			address: '',
+      email: '',
 			payment: '',
-		};
-	}
+      address: '',
+    };
+  }
 
-	clearBasket() {
-		this.basket = [];
-		this.emitChanges('basket:changed');
-	}
+  clearBasket() {
+    this.basket = [];
+    this.emitChanges('basket:changed');
+  }
 
-	updateOrder() {
-		this.order.items = this.basket.map((card) => card.id);
-		this.order.total = this.calculateTotalPrice();
-	}
+  updateOrder() {
+		this.order.total = this.computeTotalPrice();
+    this.order.items = this.basket.map((card) => card.id);
+  }
 
-	calculateTotalPrice() {
-		return this.basket.reduce((total, card) => total + card.price, 0);
-	}
+  computeTotalPrice(): number {
+    return this.basket.reduce((total, card) => total + (card.price || 0), 0);
+  }
 
-	setOrderPayment(value: string) {
-		this.order.payment = value;
-	}
+  setOrderPayment(value: string) {
+    this.order.payment = value;
+  }
 
-	setOrderPhone(value: string) {
-		this.order.phone = value;
-	}
+  setOrderPhone(value: string) {
+    this.order.phone = value;
+  }
 
-	setOrderEmail(value: string) {
-		this.order.email = value;
-	}
-	setOrderAddress(value: string) {
-		this.order.address = value;
-	}
+  setOrderEmail(value: string) {
+    this.order.email = value;
+  }
 
-	setOrderField(field: keyof TOrderField, value: string) {
-		this.order[field] = value;
-		this.validateOrderForm();
-	}
+  setOrderAddress(value: string) {
+    this.order.address = value;
+  }
 
-	validateOrderForm() {
-		const errors: typeof this.formErrors = {};
+  setOrderField(field: keyof AllOrderField, value: string) {
+    if (this.order.hasOwnProperty(field)) {
+			this.validateOrderForm();
+      this.order[field] = value;
+    }
+  }
 
-		const addressCheck = new RegExp(
-			['^[', 'A-Za-zА-Яа-я0-9', '\\s,.-', ']{10,}$'].join('')
-		);
+  validateOrderForm() {
+    const errors: typeof this.formErrors = {};
 
+    const addressCheck = new RegExp('^[A-Za-zА-Яа-я0-9\\s,.-]{10,}$');
+    const phoneCheck = new RegExp('^\\+7\\(\\d{3}\\)\\d{3}-\\d{2}-\\d{2}$');
 		const emailCheck = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
-		const phoneCheck = new RegExp(
-			['^\\+7', '\\(\\d{3}\\)', '\\d{3}-\\d{2}-\\d{2}$'].join('')
-		);
-
-		if (!this.order.email) {
-			errors.email = 'Необходимо указать email';
-		} else if (!emailCheck.test(this.order.email)) {
-			errors.email = 'Некорректный формат email';
-		}
-
 		if (!this.order.phone) {
-			errors.phone = 'Необходимо указать телефон';
-		} else if (!phoneCheck.test(this.order.phone)) {
-			errors.phone =
-				'Некорректный формат телефона, введите в формате +7(ХХХ)ХХХ-ХХ-ХХ';
-		}
+      errors.phone = 'Необходимо указать телефон';
+    } else if (!phoneCheck.test(this.order.phone)) {
+      errors.phone = 'Некорректный формат телефона, введите в формате +7(ХХХ)ХХХ-ХХ-ХХ';
+    }
 
-		if (!this.order.address) {
-			errors.address = 'Необходимо указать адрес';
-		} else if (!addressCheck.test(this.order.address)) {
-			errors.address =
-				'Некорректный формат адреса, введите не менее 10 символов';
-		}
+    if (!this.order.email) {
+      errors.email = 'Необходимо указать email';
+    } else if (!emailCheck.test(this.order.email)) {
+      errors.email = 'Некорректный формат email';
+    }
 
 		if (!this.order.payment) {
-			errors.payment = 'Необходимо указать способ оплаты';
-		}
+      errors.payment = 'Необходимо указать способ оплаты';
+    }
 
-		this.formErrors = errors;
-		this.events.emit('formErrors:changed', this.formErrors);
-		return Object.keys(errors).length === 0;
-	}
+    if (!this.order.address) {
+      errors.address = 'Необходимо указать адрес';
+    } else if (!addressCheck.test(this.order.address)) {
+      errors.address = 'Некорректный формат адреса, введите не менее 10 символов';
+    }
+
+    this.formErrors = errors;
+    this.events.emit('formErrors:changed', this.formErrors);
+    return Object.keys(errors).length === 0;
+  }
 }
