@@ -1,8 +1,6 @@
-// (Переписать и переименовать переменные)
-
-import { PaymentDetailsForm, ContactDetailsForm } from '../../types';
-import { IEvents } from '../base/events';
-import { Form } from './Form';
+import { PaymentDetailsForm, ContactDetailsForm } from '.././types';
+import { Form } from './common/Form';
+import { IEvents } from './base/events';
 
 export class Order extends Form<PaymentDetailsForm> {
 	protected buttonOnline: HTMLButtonElement;
@@ -20,8 +18,8 @@ export class Order extends Form<PaymentDetailsForm> {
 		if (this.buttonOnline) {
 			this.buttonOnline.addEventListener('click', () => {
 				events.emit(`order:formUpdated`, {
-					payment: this.buttonOnline.name,
 					button: this.buttonOnline,
+					payment: this.buttonOnline.name,
 				});
 			});
 		}
@@ -29,8 +27,8 @@ export class Order extends Form<PaymentDetailsForm> {
 		if (this.buttonCash) {
 			this.buttonCash.addEventListener('click', () => {
 				events.emit(`order:formUpdated`, {
-					payment: this.buttonCash.name,
 					button: this.buttonCash,
+					payment: this.buttonCash.name,
 				});
 			});
 		}
@@ -59,17 +57,17 @@ export class Order extends Form<PaymentDetailsForm> {
 }
 
 export class Contacts extends Form<ContactDetailsForm> {
-	protected _email: HTMLInputElement;
 	protected _phone: HTMLInputElement;
+	protected _email: HTMLInputElement;
 	constructor(protected container: HTMLFormElement, protected events: IEvents) {
 		super(container, events);
-		this._email = container.elements.namedItem('email') as HTMLInputElement;
 		this._phone = container.elements.namedItem('phone') as HTMLInputElement;
-	}
-	set email(value: string) {
-		this._email.value = value;
+		this._email = container.elements.namedItem('email') as HTMLInputElement;
 	}
 	set phone(value: string) {
 		this._phone.value = value;
+	}
+	set email(value: string) {
+		this._email.value = value;
 	}
 }

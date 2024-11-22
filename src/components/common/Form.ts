@@ -1,5 +1,3 @@
-//Полностью скопировала из Оно тебе надо
-
 import { Component } from '../base/Component';
 import { IEvents } from '../base/events';
 import { ensureElement } from '../../utils/utils';

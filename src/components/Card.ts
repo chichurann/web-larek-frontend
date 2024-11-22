@@ -11,7 +11,6 @@ export interface ICardActions {
 export class Card extends Component<IProductItem> {
 	protected _imageElement?: HTMLImageElement;
 	protected _titleElement: HTMLElement;
-	protected _descriptionElement: HTMLElement;
 	protected _priceElement: HTMLElement;
 	protected _categoryElement: HTMLElement;
 	protected _buttonElement?: HTMLButtonElement;
@@ -29,21 +28,13 @@ export class Card extends Component<IProductItem> {
 		this.container.dataset.id = value;
 	}
 
-	get id(): string {
-		return this.container.dataset.id || '';
-	}
-
 	set title(value: string) {
 		this._titleElement.textContent = value;
 	}
 
-	get title(): string {
-		return this._titleElement.textContent || '';
-	}
-
 	set image(value: string) {
 		if (this._imageElement) {
-			this._imageElement.src = `${CDN_URL}${value}`;
+			this.setImage(this._imageElement, `${CDN_URL}${value}`)
 		}
 	}
 
@@ -115,6 +106,8 @@ function formatCardPrice(value: number): string {
 }
 
 export class ProductItemPreview extends Card {
+	protected _descriptionElement: HTMLElement;
+
 	constructor(container: HTMLElement, actions?: ICardActions) {
 		super('card', container, actions);
 		this._descriptionElement = container.querySelector(`.${this.blockName}__text`);
@@ -126,6 +119,8 @@ export class ProductItemPreview extends Card {
 }
 
 export class ProductItem extends Card {
+	protected _descriptionElement: HTMLElement;
+
 	constructor(container: HTMLElement, actions?: ICardActions) {
 		super('card', container, actions);
 		this._descriptionElement = container.querySelector(`.${this.blockName}__text`);
@@ -137,7 +132,6 @@ export class ProductItem extends Card {
 }
 
 export class BasketCard extends Card {
-	protected _itemTitle: HTMLElement;
 	protected _itemIndex: HTMLElement;
 	protected _removeButton: HTMLButtonElement;
 
@@ -155,3 +149,4 @@ export class BasketCard extends Card {
 		this._itemIndex.textContent = `${value}`;
 	}
 }
+

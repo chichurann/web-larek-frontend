@@ -1,6 +1,6 @@
-import { Component } from '../base/Component';
-import { createElement, ensureElement } from '../../utils/utils';
-import { EventEmitter } from '../base/events';
+import { Component } from './base/Component';
+import { createElement, ensureElement } from './../utils/utils';
+import { EventEmitter } from './base/events';
 
 interface IBasketDetails {
 	products: HTMLElement[];
@@ -48,10 +48,6 @@ export class Basket extends Component<IBasketDetails> {
 	}
 
 	set sum(amount: number) {
-		this.setText(this._amount, `${amount} синапсов`);
-	}
-
-	set amount(amount: number) {
 		this.setText(this._amount, `${amount} синапсов`);
 	}
 }
