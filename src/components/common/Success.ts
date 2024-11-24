@@ -8,8 +8,9 @@ export class Success extends Component<ISuccess> {
 
 	constructor(container: HTMLElement, actions: ISuccessHandler) {
 		super(container);
-		this._success_description = container.querySelector(
-			'.order-success__description'
+		this._success_description = ensureElement<HTMLElement>(
+			'.order-success__description',
+			this.container
 		);
 		this.close = ensureElement<HTMLElement>(
 			'.order-success__close',
@@ -21,7 +22,7 @@ export class Success extends Component<ISuccess> {
 		}
 	}
 
-	set total(total: number) {
+	set total(total: string) {
 		this.setText(this._success_description, `Списано ${total} синапсов`);
 	}
 }

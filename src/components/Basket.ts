@@ -1,17 +1,12 @@
 import { Component } from './base/Component';
 import { createElement, ensureElement } from './../utils/utils';
 import { EventEmitter } from './base/events';
-
-interface IBasketDetails {
-	products: HTMLElement[];
-	totalAmount: number;
-	selectedIds: string[];
-}
+import { IBasketDetails } from '../types';
 
 export class Basket extends Component<IBasketDetails> {
 	protected _list: HTMLElement;
 	protected _amount: HTMLElement;
-	protected _button: HTMLElement;
+	protected _button: HTMLButtonElement;
 
 	constructor(container: HTMLElement, protected events: EventEmitter) {
 		super(container);
@@ -27,27 +22,26 @@ export class Basket extends Component<IBasketDetails> {
 		}
 
 		this.items = [];
+		this._button.disabled = true;
+	}
+
+	toggleButton(isDisabled: boolean) {
+		this._button.disabled = isDisabled;
 	}
 
 	set items(items: HTMLElement[]) {
 		if (items.length) {
 			this._list.replaceChildren(...items);
-			this.setDisabled(this._button, false);  
 		} else {
 			this._list.replaceChildren(
 				createElement<HTMLParagraphElement>('p', {
 					textContent: 'Корзина пуста',
 				})
 			);
-			this.setDisabled(this._button, true); 
 		}
 	}
 
-	set selected(items: string[]) {
-		this.setDisabled(this._button, items.length === 0);
-	}
-
 	set sum(amount: number) {
-		this.setText(this._amount, `${amount} синапсов`);
+		this.setText(this._amount, `${amount.toString()} синапсов`);
 	}
 }
