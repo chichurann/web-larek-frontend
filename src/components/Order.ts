@@ -1,13 +1,9 @@
-import {
-	PaymentDetailsForm,
-	ContactDetailsForm,
-	IEvents,
-	IActions,
-} from '.././types';
+import { IOrder, IContact, IEvents, IActions } from '.././types';
 import { Form } from './common/Form';
+import { PaymentMethods } from '../utils/constants';
 import { ensureElement } from '../utils/utils';
 
-export class Order extends Form<PaymentDetailsForm> {
+export class Order extends Form<IOrder> {
 	protected buttonOnline: HTMLButtonElement;
 	protected buttonCash: HTMLButtonElement;
 
@@ -23,25 +19,42 @@ export class Order extends Form<PaymentDetailsForm> {
 			this.container
 		);
 
-		this.buttonOnline.classList.add('button_alt-active');
-
 		if (actions?.onClick) {
 			this.buttonOnline.addEventListener('click', actions.onClick);
 			this.buttonCash.addEventListener('click', actions.onClick);
 		}
 	}
+
 	set address(value: string) {
 		(this.container.elements.namedItem('address') as HTMLInputElement).value =
 			value;
 	}
 
-	toggleButtons() {
-		this.buttonOnline.classList.toggle('button_alt-active');
-		this.buttonCash.classList.toggle('button_alt-active');
+	toggleButtons(target: HTMLElement, value: string) {
+		if (PaymentMethods[value] === PaymentMethods.card) {
+			this.toggleClass(
+				this.buttonOnline,
+				'button_alt-active',
+				!target.classList.contains('button_alt-active') ? true : false
+			);
+			this.toggleClass(this.buttonCash, 'button_alt-active', false);
+		} else {
+			this.toggleClass(
+				this.buttonCash,
+				'button_alt-active',
+				!target.classList.contains('button_alt-active') ? true : false
+			);
+			this.toggleClass(this.buttonOnline, 'button_alt-active', false);
+		}
+	}
+
+	disableButtons() {
+		this.toggleClass(this.buttonCash, 'button_alt-active', false);
+		this.toggleClass(this.buttonOnline, 'button_alt-active', false);
 	}
 }
 
-export class Contacts extends Form<ContactDetailsForm> {
+export class Contacts extends Form<IContact> {
 	protected _phone: HTMLInputElement;
 	protected _email: HTMLInputElement;
 

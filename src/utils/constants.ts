@@ -1,16 +1,16 @@
 // Используется для запросов данных и отправки заказа
-export const API_URL = `https://larek-api.nomoreparties.co/api/weblarek`;
+export const API_URL = `${process.env.API_ORIGIN}/api/weblarek`;
 
 // Используется для формирования адреса картинки в товаре
-export const CDN_URL = `https://larek-api.nomoreparties.co/content/weblarek`;
+export const CDN_URL = `${process.env.API_ORIGIN}/content/weblarek`;
 
 // Настройки для приложения
 export const categorySettings: { [key: string]: string } = {
-	дополнительное: 'card__category_additional',
-	'софт-скил': 'card__category_soft',
-	другое: 'card__category_other',
-	кнопка: 'card__category_button',
-	'хард-скил': 'card__category_hard',
+	card__category_additional: 'дополнительное',
+	card__category_soft: 'софт-скил',
+	card__category_other: 'другое',
+	card__category_button: 'кнопка',
+	card__category_hard: 'хард-скил',
 };
 
 export const PaymentMethods: { [key: string]: string } = {

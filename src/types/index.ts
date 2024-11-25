@@ -14,12 +14,6 @@ export interface IEvents {
 	): (data: T) => void;
 }
 
-export interface IBasketDetails {
-	products: HTMLElement[];
-	totalAmount: number;
-	selectedIds: string[];
-}
-
 export interface IActions {
 	onClick: (event: MouseEvent) => void;
 }
@@ -48,13 +42,19 @@ export interface ICard extends IProductItem {
 	buttonTitle?: string;
 }
 
-export interface IOrderInfo {
+export interface IOrder {
 	payment: string;
-	email: string;
-	phone: string;
 	address: string;
-	total: number;
+}
+
+export interface IContact {
+	phone: string;
+	email: string;
+}
+
+export interface IOrderInfo extends  IOrder, IContact {
 	items: string[];
+	total: number;
 }
 
 export interface IAppStore {
@@ -80,9 +80,9 @@ export interface IModal {
 
 export type PaymentType = 'онлайн' | 'при получении';
 
-export type PaymentDetailsForm = Pick<IOrderInfo, 'payment' | 'address'>;
+// export type PaymentDetailsForm = Pick<IOrderInfo, 'payment' | 'address'>;
 
-export type ContactDetailsForm = Pick<IOrderInfo, 'email' | 'phone'>;
+// export type ContactDetailsForm = Pick<IOrderInfo, 'email' | 'phone'>;
 
 export type FormErrors = Partial<Record<keyof IOrderInfo, string>>;
 

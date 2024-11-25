@@ -1,17 +1,22 @@
-import { IProductItem, IAppStore, IOrderInfo, FormErrors } from '../types';
+import {
+	IProductItem,
+	IAppStore,
+	FormErrors,
+	IOrder,
+	IContact,
+} from '../types';
 import { Model } from './base/Model';
+import { PaymentMethods } from '../utils/constants';
 
 export class AppState extends Model<IAppStore> {
 	catalog: IProductItem[] = [];
 	basket: IProductItem[] = [];
 	preview: string | null = null;
-	order: IOrderInfo = {
-		total: 0,
-		items: [],
+	order: IOrder & IContact = {
 		phone: '',
 		email: '',
 		address: '',
-		payment: 'online',
+		payment: '',
 	};
 	formErrors: FormErrors = {};
 
@@ -22,12 +27,10 @@ export class AppState extends Model<IAppStore> {
 
 	clearOrder() {
 		this.order = {
-			total: 0,
-			items: [],
 			phone: '',
 			email: '',
 			address: '',
-			payment: 'online',
+			payment: '',
 		};
 	}
 
@@ -54,33 +57,31 @@ export class AppState extends Model<IAppStore> {
 	}
 
 	updateBasket() {
-		this.emitChanges('counter:changed', this.basket);
 		this.emitChanges('basket:changed', this.basket);
 	}
 
-	setDeliveryField(
-		field: keyof Pick<IOrderInfo, 'payment' | 'address'>,
-		value: string
-	) {
-		this.order[field] = value;
+	setDeliveryField(field: keyof IOrder, value: string) {
+		if (field === 'payment') {
+			this.order[field] = PaymentMethods[value];
+		} else {
+			this.order[field] = value;
+		}
+		this.emitChanges('order:change', { field, value });
 		if (this.validateOrderForm()) {
-			this.events.emit('delivery:ready', this.order);
+			this.emitChanges('delivery:ready', this.order);
 		}
 	}
 
-	setContactField(
-		field: keyof Pick<IOrderInfo, 'email' | 'phone'>,
-		value: string
-	) {
+	setContactField(field: keyof IContact, value: string) {
 		this.order[field] = value;
+		this.emitChanges('contact:change', { field, value });
 		if (this.validateOrderForm()) {
-			this.events.emit('contact:ready', this.order);
+			this.emitChanges('contact:ready', this.order);
 		}
 	}
 
 	validateOrderForm() {
 		const errors: typeof this.formErrors = {};
-
 		if (!this.order.phone) {
 			errors.phone = 'Укажите номер телефона';
 		}
@@ -98,7 +99,7 @@ export class AppState extends Model<IAppStore> {
 		}
 
 		this.formErrors = errors;
-		this.events.emit('formErrors:change', this.formErrors);
+		this.emitChanges('formErrors:change', this.formErrors);
 		return Object.keys(errors).length === 0;
 	}
 }

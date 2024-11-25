@@ -1,9 +1,9 @@
 import { Component } from './base/Component';
 import { createElement, ensureElement } from './../utils/utils';
 import { EventEmitter } from './base/events';
-import { IBasketDetails } from '../types';
+import { IProductItem } from '../types';
 
-export class Basket extends Component<IBasketDetails> {
+export class Basket extends Component<IProductItem[]> {
 	protected _list: HTMLElement;
 	protected _amount: HTMLElement;
 	protected _button: HTMLButtonElement;
@@ -22,11 +22,11 @@ export class Basket extends Component<IBasketDetails> {
 		}
 
 		this.items = [];
-		this._button.disabled = true;
+		this.toggleButton(true);
 	}
 
 	toggleButton(isDisabled: boolean) {
-		this._button.disabled = isDisabled;
+		this.setDisabled(this._button, isDisabled);
 	}
 
 	set items(items: HTMLElement[]) {

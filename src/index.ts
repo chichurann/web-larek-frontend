@@ -1,8 +1,14 @@
 import './scss/styles.scss';
 import { LarekAPI } from './components/LarekAPI';
-import { API_URL, CDN_URL, PaymentMethods } from './utils/constants';
+import { API_URL, CDN_URL } from './utils/constants';
 import { EventEmitter } from './components/base/events';
-import { IProductItem, IOrderInfo, CatalogChangeEvent } from './types';
+import {
+	IProductItem,
+	IOrderInfo,
+	CatalogChangeEvent,
+	IOrder,
+	IContact,
+} from './types';
 import { Card } from './components/Card';
 import { AppState } from './components/AppState';
 import { ensureElement, cloneTemplate } from './utils/utils';
@@ -30,7 +36,7 @@ const modalWindow = new Modal(
 	eventEmitter
 );
 const shoppingBasket = new Basket(cloneTemplate(basketTemplate), eventEmitter);
-const contactInfo = new Contacts(cloneTemplate(contactsTemplate), eventEmitter);
+const contactForm = new Contacts(cloneTemplate(contactsTemplate), eventEmitter);
 const orderForm = new Order(cloneTemplate(orderTemplate), eventEmitter, {
 	onClick: (ev: Event) => eventEmitter.emit('payment:toggle', ev.target),
 });
@@ -111,17 +117,13 @@ eventEmitter.on('basket:changed', (items: IProductItem[]) => {
 	});
 	const total = items.reduce((total, item) => total + item.price, 0);
 	shoppingBasket.sum = total;
-	appState.order.total = total;
 	shoppingBasket.toggleButton(total === 0);
-});
-
-eventEmitter.on('counter:changed', () => {
 	mainPageContainer.counter = appState.basket.length;
 });
 
 eventEmitter.on('basket:open', () => {
 	modalWindow.render({
-		content: shoppingBasket.render({}),
+		content: shoppingBasket.render([]),
 	});
 });
 
@@ -134,44 +136,35 @@ eventEmitter.on('order:openForm', () => {
 			errors: [],
 		}),
 	});
-	appState.order.items = appState.basket.map((item) => item.id);
-});
-
-eventEmitter.on('payment:toggle', (target: HTMLElement) => {
-	if (!target.classList.contains('button_alt-active')) {
-		orderForm.toggleButtons();
-		appState.order.payment = PaymentMethods[target.getAttribute('name')];
-	}
 });
 
 eventEmitter.on('formErrors:change', (errors: Partial<IOrderInfo>) => {
 	const { payment, address, email, phone } = errors;
 	orderForm.valid = !payment && !address;
-	contactInfo.valid = !email && !phone;
+	contactForm.valid = !email && !phone;
 	orderForm.errors = Object.values({ payment, address })
 		.filter((i) => !!i)
 		.join('; ');
-	contactInfo.errors = Object.values({ phone, email })
+	contactForm.errors = Object.values({ phone, email })
 		.filter((i) => !!i)
 		.join('; ');
 });
 
+eventEmitter.on('payment:toggle', (data: HTMLElement & { name: string }) => {
+	orderForm.toggleButtons(data, data.name);
+	appState.setDeliveryField('payment', data.name);
+});
+
 eventEmitter.on(
 	/^order\..*:change/,
-	(data: {
-		field: keyof Pick<IOrderInfo, 'payment' | 'address'>;
-		value: string;
-	}) => {
+	(data: { field: keyof IOrder; value: string }) => {
 		appState.setDeliveryField(data.field, data.value);
 	}
 );
 
 eventEmitter.on(
 	/^contacts\..*:change/,
-	(data: {
-		field: keyof Pick<IOrderInfo, 'email' | 'phone'>;
-		value: string;
-	}) => {
+	(data: { field: keyof IContact; value: string }) => {
 		appState.setContactField(data.field, data.value);
 	}
 );
@@ -181,12 +174,12 @@ eventEmitter.on('delivery:ready', () => {
 });
 
 eventEmitter.on('contact:ready', () => {
-	contactInfo.valid = true;
+	contactForm.valid = true;
 });
 
 eventEmitter.on('order:submit', () => {
 	modalWindow.render({
-		content: contactInfo.render({
+		content: contactForm.render({
 			email: '',
 			phone: '',
 			valid: false,
@@ -197,7 +190,11 @@ eventEmitter.on('order:submit', () => {
 
 eventEmitter.on('contacts:submit', () => {
 	apiService
-		.orderProducts(appState.order)
+		.orderProducts({
+			...appState.order,
+			items: appState.basket.map((item) => item.id),
+			total: appState.basket.reduce((total, item) => total + item.price, 0),
+		})
 		.then((result) => {
 			appState.clearBasket();
 			appState.clearOrder();
@@ -216,6 +213,8 @@ eventEmitter.on('modal:open', () => {
 });
 
 eventEmitter.on('modal:close', () => {
+	orderForm.disableButtons();
+	appState.clearOrder();
 	mainPageContainer.locked = false;
 });
 

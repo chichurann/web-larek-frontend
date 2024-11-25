@@ -38,17 +38,17 @@ export class Card extends Component<ICard> {
 		this.container.dataset.id = value;
 	}
 
-	get id(): string {
-		return this.container.dataset.id || '';
-	}
+	// get id(): string {
+	// 	return this.container.dataset.id || '';
+	// }
 
 	set title(value: string) {
 		this.setText(this._titleElement, value);
 	}
 
-	get title(): string {
-		return this._titleElement.textContent || '';
-	}
+	// get title(): string {
+	// 	return this._titleElement.textContent || '';
+	// }
 
 	set price(value: number | null) {
 		if (value !== null) {
@@ -58,13 +58,17 @@ export class Card extends Component<ICard> {
 		}
 
 		if (this._buttonElement && !value) {
-			this._buttonElement.disabled = true;
+			this.setDisabled(this._buttonElement, true);
 		}
 	}
 
 	set category(value: CategoryType) {
 		this.setText(this._categoryElement, value);
-		this._categoryElement.classList.add(categorySettings[value]);
+		this.toggleClass(
+			this._categoryElement,
+			Object.keys(categorySettings).find((k) => categorySettings[k] === value),
+			true
+		);
 	}
 
 	set image(value: string) {
